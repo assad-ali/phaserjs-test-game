@@ -1,6 +1,5 @@
 import './css/theme.css';
 import Phaser from 'phaser';
-import './js/plugins/webfont.js';
 import './js/utils.js';
 import Boot from './js/Boot';
 import Preloader from './js/Preloader';

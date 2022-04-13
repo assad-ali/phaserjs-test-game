@@ -6,7 +6,6 @@ export default class Boot extends Phaser.Scene {
 		this.load.image('background', './img/background.png');
 		this.load.image('logo-brand', './img/logo-brand.png');
 		this.load.image('loading-background', './img/loading-background.png');
-		WebFont.load({ custom: { families: ['Berlin'], urls: ['./fonts/BRLNSDB.css'] } });
 	}
 	create() {
 		SAT.world = {
