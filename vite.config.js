@@ -1,3 +1,3 @@
 export default {
-	base: '/phaserjs-test-game/'
+	// base: '/phaserjs-test-game/'
 };
