@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import './js/utils.js';
 import Boot from './js/Boot';
 import Preloader from './js/Preloader';
+import Settings from './js/Settings';
 import MainMenu from './js/MainMenu';
 import Story from './js/Story';
 import Game from './js/Game';
@@ -22,7 +23,7 @@ const config = {
 			// debug: true
 		}
 	},
-	scene: [Boot, Preloader, MainMenu, Story, Game],
+	scene: [Boot, Preloader, Settings, MainMenu, Story, Game],
 	backgroundColor: '#ffffff'
 };
 

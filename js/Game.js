@@ -29,7 +29,7 @@ export default class Game extends Phaser.Scene {
                 	if (this._time > 1 && this._time <= 3){
                 		if(!SAT.Sfx.sounds['countdown'].isPlaying){
 							SAT.Sfx.play('countdown');
-							SAT.Sfx.music.volume = 0.2;
+							SAT.Sfx.music.volume = 0.3;
 						}
 					}
 				}

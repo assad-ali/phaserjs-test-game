@@ -22,8 +22,8 @@ export default class MainMenu extends Phaser.Scene
 		this.tweens.add({targets: title, angle: title.angle-2, duration: 1000, ease: 'Sine.easeInOut' });
 		this.tweens.add({targets: title, angle: title.angle+4, duration: 2000, ease: 'Sine.easeInOut', yoyo: 1, loop: -1, delay: 1000 });
 
-		// this.buttonSettings = new Button(20, 20, 'button-settings', this.clickSettings, this);
-		// this.buttonSettings.setOrigin(0, 0);
+		this.buttonSettings = new Button(20, 20, 'button-settings', this.clickSettings, this);
+		this.buttonSettings.setOrigin(0, 0);
 
 		// var buttonBrand = new Button(20, SAT.world.height-40, 'logo-brand', this.clickBrand, this, 'static');
 		// buttonBrand.setOrigin(0, 1);
@@ -41,8 +41,8 @@ export default class MainMenu extends Phaser.Scene
 		// buttonBrand.x = -buttonBrand.width-20;
 		// this.tweens.add({targets: buttonBrand, x: 20, duration: 500, ease: 'Back'});
 
-		// this.buttonSettings.y = -this.buttonSettings.height-20;
-		// this.tweens.add({targets: this.buttonSettings, y: 20, duration: 500, ease: 'Back'});
+		this.buttonSettings.y = -this.buttonSettings.height-20;
+		this.tweens.add({targets: this.buttonSettings, y: 20, duration: 500, ease: 'Back'});
 
 		// textHighscore.y = -textHighscore.height-30;
 		// this.tweens.add({targets: textHighscore, y: 40, duration: 500, delay: 100, ease: 'Back'});
@@ -76,29 +76,29 @@ export default class MainMenu extends Phaser.Scene
 	// 	SAT.Sfx.play('click');
 	// 	window.top.location.href = 'https://satellite.co.nz/';
 	// }
-	// clickSettings() {
-	// 	if(this.bgFilesLoaded) {
-	// 		SAT.Sfx.play('click');
-	// 		if(this.loadImage) {
-	// 			this.loadImage.destroy();
-	// 		}
-	// 		SAT.fadeOutScene('Settings', this);
-	// 	}
-	// 	else {
-	// 		var animationFrames = this.anims.generateFrameNumbers('loader');
-	// 		animationFrames.pop();
-	// 		this.waitingForSettings = true;
-	// 		this.buttonSettings.setAlpha(0.1);
-	// 		var loadAnimation = this.anims.create({
-	// 			key: 'loading',
-	// 			frames: animationFrames,
-	// 			frameRate: 12,
-	// 			repeat: -1
-	// 		});
-	// 		this.loadImage = this.add.sprite(30, 30, 'loader').setOrigin(0,0).setScale(1.25);
-	// 		this.loadImage.play('loading');
-	// 	}
-	// }
+	clickSettings() {
+		if(this.bgFilesLoaded) {
+			SAT.Sfx.play('click');
+			if(this.loadImage) {
+				this.loadImage.destroy();
+			}
+			SAT.fadeOutScene('Settings', this);
+		}
+		else {
+			var animationFrames = this.anims.generateFrameNumbers('loader');
+			animationFrames.pop();
+			this.waitingForSettings = true;
+			this.buttonSettings.setAlpha(0.1);
+			var loadAnimation = this.anims.create({
+				key: 'loading',
+				frames: animationFrames,
+				frameRate: 12,
+				repeat: -1
+			});
+			this.loadImage = this.add.sprite(30, 30, 'loader').setOrigin(0,0).setScale(1.25);
+			this.loadImage.play('loading');
+		}
+	}
 	clickStart() {
 		if(this.bgFilesLoaded) {
 			SAT.Sfx.play('click');
