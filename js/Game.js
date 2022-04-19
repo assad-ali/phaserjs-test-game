@@ -2,6 +2,9 @@ export default class Game extends Phaser.Scene {
     constructor() {
         super('Game');
     }
+	preload() {
+		this.load.plugin('rexvirtualjoystickplugin', 'js/plugins/rexvirtualjoystickplugin.min.js', true);
+	}
     create() {
 
         let bg = this.add.sprite(0, 0, 'background').setOrigin(0,0);
@@ -16,6 +19,8 @@ export default class Game extends Phaser.Scene {
         this.initObjects();
         this.initCollisions();
         this.initUI();
+        this.initJoyStick();
+
         this.currentTimer = this.time.addEvent({
             delay: 1000,
             callback: function(){
@@ -41,6 +46,7 @@ export default class Game extends Phaser.Scene {
         this.cameras.main.fadeIn(250);
         this.stateStatus = 'playing';
     }
+
 	update(time, delta) {
 		switch(this.stateStatus) {
 			case 'gameover': {
@@ -78,13 +84,13 @@ export default class Game extends Phaser.Scene {
 	}
 	initPlayer(){
 
-		this.player = this.physics.add.image(SAT.world.width-(SAT.world.width / 2), SAT.world.height-45, 'catcher')
+		this.player = this.physics.add.image(SAT.world.width-(SAT.world.width / 2), SAT.world.height-200, 'catcher')
 			.setScale(1.25)
 			.setVelocity(0)
 			.setBounce(20)
 			.setGravityY(500)
 			.setDepth(3)
-			.setCollideWorldBounds(true, 100, 0);
+			.setCollideWorldBounds(true, 0, 0);
 
 		this.input.setDraggable(this.player.setInteractive());
 		this.input.on('dragstart', function (pointer, obj) {
@@ -92,7 +98,10 @@ export default class Game extends Phaser.Scene {
 		});
 
 		this.input.on('drag', function (pointer, obj, dragX, dragY) {
+
 			obj.setPosition(dragX, SAT.world.height-45);
+			// obj.body.setVelocityX(dragX * 100);
+			// obj.body.setVelocityY(SAT.world.height-45);
 		});
 
 		this.input.on('dragend', function (pointer, obj) {
@@ -184,6 +193,74 @@ export default class Game extends Phaser.Scene {
 		this.screenGameoverGroup.add(this.screenGameoverScore);
 		this.screenGameoverGroup.toggleVisible();
     }
+	initJoyStick(){
+		this.screenGameControls = this.add.group().setDepth(5);
+		this.joyStick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
+			x: SAT.world.width-50,
+			y: SAT.world.height-50,
+			radius: 50,
+			base: this.add.circle(0, 0, 50, 0x888888),
+			thumb: this.add.circle(0, 0, 15, 0xcccccc),
+			dir: 'left&right',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+			// forceMin: 16,
+			enable: true
+		})
+			.on('update', this.joystickStateUpdates, this);
+
+		this.screenGameControls.add(this.joyStick);
+	}
+	joystickStateUpdates(){
+
+		// var cursorKeys = this.joyStick.createCursorKeys();
+		// var s = 'Key down: ';
+		// for (var name in cursorKeys) {
+		// 	if (cursorKeys[name].isDown) {
+		// 		s += `${name} `;
+		// 	}
+		// }
+
+		let force = Math.floor(this.joyStick.force * 100) / 100;
+		let angle = Math.floor(this.joyStick.angle * 100) / 100;
+		let initialPlayerPos = SAT.world.width-(SAT.world.width / 2);
+		let speed = 2;
+
+		this.player.setVelocity(0);
+
+		// if(this.joyStick.noKey){
+		// 	this.player.setPosition(initialPlayerPos, SAT.world.height-45);
+		// }
+
+		if(this.joyStick.left){
+			// console.log(force);
+			// console.log('moved left')
+			// this.player.body.position.x = initialPlayerPos-300;
+			// this.physics.world.velocityFromRotation(this.joyStick.rotation, this.joyStick.force * 100, this.player.body.velocity);
+			// this.player.rotation  = this.joyStick.rotation;
+			// this.player.setVelocity(1);
+			this.player.setVelocityX(-500);
+			// this.player.setPosition(initialPlayerPos-(force * speed), SAT.world.height-45);
+
+			// if (this.joyStick.forceX < 500){
+			// 	this.player.setPosition(initialPlayerPos-(this.joyStick.forceX * 5), SAT.world.height-45);
+			// }else{
+			// 	this.player.setPosition(initialPlayerPos-(500 * 5), SAT.world.height-45);
+			// }
+		}
+		if(this.joyStick.right){
+			// console.log(force);
+			// this.player.body.position.x = initialPlayerPos+300;
+			// this.player.setVelocity(1);
+			this.player.setVelocityX(500);
+			// this.player.setPosition( initialPlayerPos+(force * speed), SAT.world.height-45);
+
+		// 	if (this.joyStick.forceX < 500){
+		// 		this.player.setPosition(initialPlayerPos+(this.joyStick.forceX * 5), SAT.world.height-45);
+		// 	}else{
+		// 		this.player.setPosition(initialPlayerPos+(500 * 5), SAT.world.height-45);
+		// 	}
+		}
+
+	}
 	objectDrop() {
 		if(this._time > 0) {
 			let xAxis = Math.floor(Math.random() * 650) + 15;
