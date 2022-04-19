@@ -10,39 +10,18 @@ export default class Game extends Phaser.Scene {
         this._score = 0;
         this._time = 30;
 		this._runOnce = false;
+		this.currentTimer = null;
 
         this.initPlayer();
         this.initObjects();
         this.initUI();
         this.initGround();
 		this.initCollisions();
-
-        this.currentTimer = this.time.addEvent({
-            delay: 1000,
-            callback: function(){
-                this._time--;
-                this.textTime.setText(SAT.text['gameplay-timeleft']+this._time);
-                if(!this._time) {
-					SAT.Sfx.music.volume = 0.5;
-                    this._runOnce = false;
-                    this.stateStatus = 'gameover';
-                }else{
-                	if (this._time > 1 && this._time <= 3){
-                		if(!SAT.Sfx.sounds['countdown'].isPlaying){
-							SAT.Sfx.play('countdown');
-							SAT.Sfx.music.volume = 0.3;
-						}
-					}
-				}
-            },
-            callbackScope: this,
-            loop: true
-        });
+		this.initGameTimer();
 
         this.cameras.main.fadeIn(250);
         this.stateStatus = 'playing';
     }
-
 	update(time, delta) {
 		switch(this.stateStatus) {
 			case 'gameover': {
@@ -59,25 +38,10 @@ export default class Game extends Phaser.Scene {
 			}
 		}
 	}
-	statePlaying() {
-        if(this._time === 0) {
-            this._runOnce = false;
-            this.stateStatus = 'gameover';
-        }
-	}
-	stateGameover() {
-		this.currentTimer.paused =! this.currentTimer.paused;
-		SAT.Storage.setHighscore('SAT-highscore',this._score);
-		SAT.fadeOutIn(function(self){
-			self.screenGameoverGroup.toggleVisible();
-			self.screenGameoverScore.setText(SAT.text['gameplay-score']+self._score);
-			self.gameoverScoreTween();
-		}, this);
-		this.screenGameoverBack.x = -this.screenGameoverBack.width-20;
-		this.tweens.add({targets: this.screenGameoverBack, x: 100, duration: 500, delay: 250, ease: 'Back'});
-		this.screenGameoverRestart.x = SAT.world.width+this.screenGameoverRestart.width+20;
-		this.tweens.add({targets: this.screenGameoverRestart, x: SAT.world.width-100, duration: 500, delay: 250, ease: 'Back'});
-	}
+
+	/*
+		Initialisations
+	*/
 	initPlayer(){
 
 		this.player = this.physics.add.image(SAT.world.width-(SAT.world.width / 2), SAT.world.height-250, 'catcher')
@@ -152,12 +116,6 @@ export default class Game extends Phaser.Scene {
 		this.textScore.y = -this.textScore.height-20;
 		this.tweens.add({targets: this.textScore, y: 45, duration: 400, delay: 200, ease: 'Back'});
 
-		this.textTime = this.add.text(30, 45, SAT.text['gameplay-timeleft']+this._time, fontScore).setDepth(3);
-		this.textTime.setOrigin(0,1).setDepth(3);
-
-		this.textTime.y = -this.textTime.height-20;
-		this.tweens.add({targets: this.textTime, y: 90, duration: 400, ease: 'Back'});
-
 		var fontTitle = { font: '48px '+SAT.text['FONT'], fill: '#000', stroke: '#ffde00', strokeThickness: 10 };
 
 		this.screenGameoverGroup = this.add.group().setDepth(5);
@@ -191,58 +149,75 @@ export default class Game extends Phaser.Scene {
 			.create(SAT.world.width-(SAT.world.width / 2), SAT.world.height, 'ground')
 			.setDepth(4);
 	}
-	joystickStateUpdates(){
+	initGameTimer(){
 
-		// var cursorKeys = this.joyStick.createCursorKeys();
-		// var s = 'Key down: ';
-		// for (var name in cursorKeys) {
-		// 	if (cursorKeys[name].isDown) {
-		// 		s += `${name} `;
-		// 	}
-		// }
+		this.stopWatchGroup = this.add.group();
+		let stopwatchShell = this.add.image(0, -100, 'frame-stopwatch');
 
-		let force = Math.floor(this.joyStick.force * 100) / 100;
-		let angle = Math.floor(this.joyStick.angle * 100) / 100;
-		let initialPlayerPos = SAT.world.width-(SAT.world.width / 2);
-		let speed = 2;
+		// let stopwatchCircleFill = this.add.graphics(0, 0);
 
-		this.player.setVelocity(0);
+		// stopwatchCircleFill.clear();
+		// stopwatchCircleFill.lineStyle(2, 0xffffff);
+		// stopwatchCircleFill.fillStyle(0xa000f3);
+		// stopwatchCircleFill.arc(600, 300, 160, 0, this.math.degToRad(0), true, 128);
+		// stopwatchCircleFill.endFill();
+		//
+		// graphics.fillStyle(0xFFFFFF, 1.0);
+		// graphics.fillRect(50, 50, 400, 200);
+		// graphics.strokeRect(50, 50, 400, 200);
 
-		// if(this.joyStick.noKey){
-		// 	this.player.setPosition(initialPlayerPos, SAT.world.height-45);
-		// }
+		// var stopwatchCircleFill = this.add.arc(29.5, 150.5, 50, 0, 360, false, 0x6666ff);
+		// var stopwatchCircleFill = this.add.arc(29.5, 150.5, 50, -90, 45, false, 0x6666ff);
+		// var stopwatchCircleFill = this.add.circle(29.5, 150.5, 50, 0x6666ff);
 
-		if(this.joyStick.left){
-			// console.log(force);
-			// console.log('moved left')
-			// this.player.body.position.x = initialPlayerPos-300;
-			// this.physics.world.velocityFromRotation(this.joyStick.rotation, this.joyStick.force * 100, this.player.body.velocity);
-			// this.player.rotation  = this.joyStick.rotation;
-			// this.player.setVelocity(1);
-			this.player.setVelocityX(-500);
-			// this.player.setPosition(initialPlayerPos-(force * speed), SAT.world.height-45);
+		// stopwatchCircleFill.fillStyle(0xffff00, 1);
+		// stopwatchCircleFill.beginPath();
+		// stopwatchCircleFill.moveTo(29.5, 150.5);
+		var stopwatchCircleFill = this.add.arc(29.5, 150.5, 50, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(20), true, 0x6666ff);
+		// stopwatchCircleFill.closePath();
 
-			// if (this.joyStick.forceX < 500){
-			// 	this.player.setPosition(initialPlayerPos-(this.joyStick.forceX * 5), SAT.world.height-45);
-			// }else{
-			// 	this.player.setPosition(initialPlayerPos-(500 * 5), SAT.world.height-45);
-			// }
-		}
-		if(this.joyStick.right){
-			// console.log(force);
-			// this.player.body.position.x = initialPlayerPos+300;
-			// this.player.setVelocity(1);
-			this.player.setVelocityX(500);
-			// this.player.setPosition( initialPlayerPos+(force * speed), SAT.world.height-45);
+		// stopwatchCircleFill.fillPath();
 
-		// 	if (this.joyStick.forceX < 500){
-		// 		this.player.setPosition(initialPlayerPos+(this.joyStick.forceX * 5), SAT.world.height-45);
-		// 	}else{
-		// 		this.player.setPosition(initialPlayerPos+(500 * 5), SAT.world.height-45);
-		// 	}
-		}
+		stopwatchCircleFill.setBlendMode(Phaser.BlendModes.MULTIPLY);
+		// stopwatchCircleFill.setOrigin(0, 125);
+		// stopwatchCircleFill.setStrokeStyle(2, 0x1a65ac);
+
+		this.stopWatchGroup.add(stopwatchCircleFill);
+		this.stopWatchGroup.add(stopwatchShell);
+		// this.textTime = this.add.image(25, 100, 'frame-stopwatch');
+		// this.textTime = this.add.text(30, 45, SAT.text['gameplay-timeleft']+this._time, { font: '38px '+SAT.text['FONT'], fill: '#ffde00', stroke: '#000', strokeThickness: 5 }).setDepth(3);
+		this.stopWatchGroup.setOrigin(0,1).setDepth(3);
+
+		// this.stopWatchGroup.y = 200;
+		this.tweens.add({targets: stopwatchShell, y: 165, x:15, duration: 400, ease: 'Back'});
+
+		this.currentTimer = this.time.addEvent({
+			delay: 1000,
+			callback: function(){
+				this._time--;
+				// this.textTime.setText(SAT.text['gameplay-timeleft']+this._time);
+				if(!this._time) {
+					SAT.Sfx.music.volume = 0.5;
+					this._runOnce = false;
+					this.stateStatus = 'gameover';
+				}else{
+					if (this._time > 1 && this._time <= 3){
+						if(!SAT.Sfx.sounds['countdown'].isPlaying){
+							SAT.Sfx.play('countdown');
+							SAT.Sfx.music.volume = 0.3;
+						}
+					}
+				}
+			},
+			callbackScope: this,
+			loop: true
+		});
 
 	}
+
+	/*
+		Methods
+	*/
 	objectDrop() {
 		if(this._time > 0) {
 			let xAxis = Math.floor(Math.random() * 650) + 15;
@@ -348,14 +323,6 @@ export default class Game extends Phaser.Scene {
 		object.disableBody(true, true);
 
 	}
-	stateRestart() {
-		SAT.Sfx.play('click');
-        SAT.fadeOutScene('Game', this);
-	}
-	stateBack() {
-		SAT.Sfx.play('click');
-		SAT.fadeOutScene('MainMenu', this);
-	}
 	gameoverScoreTween() {
 		this.screenGameoverScore.setText(SAT.text['gameplay-score']+'0');
 		if(this._score) {
@@ -383,5 +350,36 @@ export default class Game extends Phaser.Scene {
 				}
 			});
 		}
+	}
+
+	/*
+		States
+	*/
+	statePlaying() {
+		if(this._time === 0) {
+			this._runOnce = false;
+			this.stateStatus = 'gameover';
+		}
+	}
+	stateGameover() {
+		this.currentTimer.paused =! this.currentTimer.paused;
+		SAT.Storage.setHighscore('SAT-highscore',this._score);
+		SAT.fadeOutIn(function(self){
+			self.screenGameoverGroup.toggleVisible();
+			self.screenGameoverScore.setText(SAT.text['gameplay-score']+self._score);
+			self.gameoverScoreTween();
+		}, this);
+		this.screenGameoverBack.x = -this.screenGameoverBack.width-20;
+		this.tweens.add({targets: this.screenGameoverBack, x: 100, duration: 500, delay: 250, ease: 'Back'});
+		this.screenGameoverRestart.x = SAT.world.width+this.screenGameoverRestart.width+20;
+		this.tweens.add({targets: this.screenGameoverRestart, x: SAT.world.width-100, duration: 500, delay: 250, ease: 'Back'});
+	}
+	stateRestart() {
+		SAT.Sfx.play('click');
+        SAT.fadeOutScene('Game', this);
+	}
+	stateBack() {
+		SAT.Sfx.play('click');
+		SAT.fadeOutScene('MainMenu', this);
 	}
 };
