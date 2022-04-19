@@ -1,10 +1,12 @@
+import VirtualJoystick from 'phaser3-rex-plugins/plugins/virtualjoystick.js';
+
 export default class Game extends Phaser.Scene {
     constructor() {
         super('Game');
     }
-	preload() {
-		this.load.plugin('rexvirtualjoystickplugin', 'js/plugins/rexvirtualjoystickplugin.min.js', true);
-	}
+	// preload() {
+	// 	this.load.plugin('rexvirtualjoystickplugin', 'js/plugins/rexvirtualjoystickplugin.min.js', true);
+	// }
     create() {
 
         let bg = this.add.sprite(0, 0, 'background').setOrigin(0,0);
@@ -195,7 +197,11 @@ export default class Game extends Phaser.Scene {
     }
 	initJoyStick(){
 		this.screenGameControls = this.add.group().setDepth(5);
-		this.joyStick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
+
+		// var joyStick = scene.plugins.get('rexVirtualJoystick').addPlayer(this, config);
+
+
+		this.joyStick = new VirtualJoystick(this, {
 			x: SAT.world.width-50,
 			y: SAT.world.height-50,
 			radius: 50,
