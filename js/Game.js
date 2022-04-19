@@ -1,14 +1,8 @@
-import VirtualJoystick from 'phaser3-rex-plugins/plugins/virtualjoystick.js';
-
 export default class Game extends Phaser.Scene {
     constructor() {
         super('Game');
     }
-	// preload() {
-	// 	this.load.plugin('rexvirtualjoystickplugin', 'js/plugins/rexvirtualjoystickplugin.min.js', true);
-	// }
     create() {
-
         let bg = this.add.sprite(0, 0, 'background').setOrigin(0,0);
         bg.alpha = 0.15;
 
@@ -19,9 +13,9 @@ export default class Game extends Phaser.Scene {
 
         this.initPlayer();
         this.initObjects();
-        this.initCollisions();
         this.initUI();
-        this.initJoyStick();
+        this.initGround();
+		this.initCollisions();
 
         this.currentTimer = this.time.addEvent({
             delay: 1000,
@@ -86,11 +80,10 @@ export default class Game extends Phaser.Scene {
 	}
 	initPlayer(){
 
-		this.player = this.physics.add.image(SAT.world.width-(SAT.world.width / 2), SAT.world.height-200, 'catcher')
-			.setScale(1.25)
+		this.player = this.physics.add.image(SAT.world.width-(SAT.world.width / 2), SAT.world.height-250, 'catcher')
+			.setScale(1.15)
 			.setVelocity(0)
-			.setBounce(20)
-			.setGravityY(500)
+			.setBounce(0.2)
 			.setDepth(3)
 			.setCollideWorldBounds(true, 0, 0);
 
@@ -100,10 +93,7 @@ export default class Game extends Phaser.Scene {
 		});
 
 		this.input.on('drag', function (pointer, obj, dragX, dragY) {
-
-			obj.setPosition(dragX, SAT.world.height-45);
-			// obj.body.setVelocityX(dragX * 100);
-			// obj.body.setVelocityY(SAT.world.height-45);
+			obj.setPosition(dragX, obj.y);
 		});
 
 		this.input.on('dragend', function (pointer, obj) {
@@ -132,7 +122,7 @@ export default class Game extends Phaser.Scene {
 	}
 	initCollisions(){
 
-		this.playerColliderObj = this.physics.add.collider(this.player);
+		this.physics.add.collider(this.player, this.groundGroup);
 
 		// when player collides with objects, use the addPoints function to disable object and add points
 		this.physics.add.overlap(
@@ -195,25 +185,11 @@ export default class Game extends Phaser.Scene {
 		this.screenGameoverGroup.add(this.screenGameoverScore);
 		this.screenGameoverGroup.toggleVisible();
     }
-	initJoyStick(){
-		this.screenGameControls = this.add.group().setDepth(5);
-
-		// var joyStick = scene.plugins.get('rexVirtualJoystick').addPlayer(this, config);
-
-
-		this.joyStick = new VirtualJoystick(this, {
-			x: SAT.world.width-50,
-			y: SAT.world.height-50,
-			radius: 50,
-			base: this.add.circle(0, 0, 50, 0x888888),
-			thumb: this.add.circle(0, 0, 15, 0xcccccc),
-			dir: 'left&right',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
-			// forceMin: 16,
-			enable: true
-		})
-			.on('update', this.joystickStateUpdates, this);
-
-		this.screenGameControls.add(this.joyStick);
+    initGround(){
+		this.groundGroup = this.physics.add.staticGroup()
+		this.groundGroup
+			.create(SAT.world.width-(SAT.world.width / 2), SAT.world.height, 'ground')
+			.setDepth(4);
 	}
 	joystickStateUpdates(){
 

@@ -148,6 +148,7 @@ export default class MainMenu extends Phaser.Scene
 				['overlay', './img/overlay.png'],
 				['fire', './img/fire.png'],
 				['particle', './img/particle.png'],
+				['ground', './img/ground.png'],
 			],
 			'spritesheet': [
 				['button-continue', './img/button-continue.png', {frameWidth:180,frameHeight:180}],
